@@ -3,6 +3,7 @@
 
 import sys
 import urllib
+import urllib2
 import base64
 import mimetypes
 import os
@@ -65,7 +66,7 @@ def fetch_icon(key, icons, domain, path, apppath):
         print 'ok'
     #fetch icon from local
     else:
-        image = urllib.urlopen(iconurl).read()
+        image = urllib2.urlopen(iconurl).read()
         icon_base64 = convert_icon(image,
                                      mimetypes.guess_type(iconurl)[0])
         print 'ok'
@@ -80,7 +81,7 @@ def fetch_application(app_url, directory=None):
     if url.scheme:
         print 'manifest: ' + app_url
         print 'fetching manifest...'
-        manifest_url = urllib.urlopen(app_url)
+        manifest_url = urllib2.urlopen(app_url)
         manifest = json.loads(manifest_url.read().decode('utf-8-sig'))
         metadata['installOrigin'] = domain
         if 'etag' in manifest_url.headers:
@@ -108,11 +109,17 @@ def fetch_application(app_url, directory=None):
         if url.scheme:
             print 'downloading app...'
             path = manifest['package_path']
-            urllib.urlretrieve(
-                manifest['package_path'],
-                filename=os.path.join(apppath, filename))
+            #urllib.urlretrieve(
+            #    manifest['package_path'],
+            #    filename=os.path.join(apppath, filename))
+        filename='%s%s%s' % (appname, os.sep, filename)
+            #filename=os.path.join(apppath, filename)
+	    f = open(filename, "wb")
+            f.write(urllib2.urlopen(path).read())
+            f.close() 
+	    #
             metadata['manifestURL'] = url.geturl()
-            metadata['packageEtag'] = urllib.urlopen(path).headers['etag']
+            metadata['packageEtag'] = urllib2.urlopen(path).headers['etag']
         else:
             print 'copying app...'
             shutil.copyfile(app_url, '%s%s%s' % (appname, os.sep, filename))
